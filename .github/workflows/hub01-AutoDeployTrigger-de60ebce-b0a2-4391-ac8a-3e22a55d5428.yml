@@ -1,0 +1,42 @@
+name: Trigger auto deployment for hub01
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ master ]
+    paths:
+    - '**'
+    - '.github/workflows/hub01-AutoDeployTrigger-de60ebce-b0a2-4391-ac8a-3e22a55d5428.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.HUB01_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: anicole01.azurecr.io
+          registryUsername: ${{ secrets.HUB01_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.HUB01_REGISTRY_PASSWORD }}
+          containerAppName: hub01
+          resourceGroup: anicole-env3
+          imageToBuild: anicole01.azurecr.io/hub01:${{ github.sha }}
+          
+
+     
+
